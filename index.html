@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gioco di Capodanno</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #game-container { display: none; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+    <h1>Benvenuto nel Gioco di Capodanno!</h1>
+    <p>Inserisci il tuo nome da supereroe:</p>
+    <select id="superhero-name">
+        <option value="">Seleziona il nome</option>
+        <option value="Angelo">Angelo</option>
+        <option value="Matilde">Matilde</option>
+        <option value="Eleonora">Eleonora</option>
+        <option value="Rita">Rita</option>
+        <option value="Federico">Federico</option>
+        <option value="Rebecca">Rebecca</option>
+        <option value="Alessandro">Alessandro</option>
+        <option value="Francesco">Francesco</option>
+        <option value="Giulia">Giulia</option>
+    </select>
+    <button onclick="startGame()">Inizia</button>
+
+    <div id="game-container">
+        <h2 id="selected-name"></h2>
+        <p>Scegli una delle opzioni:</p>
+        <button onclick="acceptChallenge()">Accetta la Sfida</button>
+        <button onclick="declineChallenge()">Rifiuta la Sfida</button>
+        <p id="challenge-result"></p>
+    </div>
+
+    <script>
+        // Liste delle sfide
+        const challenges = [
+            "Fai una camminata da modella intorno alla stanza.",
+            "Racconta una barzelletta e fai ridere almeno tre persone.",
+            "Fai finta di essere un cantante rock per 30 secondi.",
+            "Imita un animale a scelta per un minuto.",
+            "Canta la tua canzone preferita senza musica.",
+            "Parla in una lingua inventata per due minuti.",
+            "Racconta un aneddoto divertente che ti è capitato.",
+            "Fai un ballo come se fossi in discoteca.",
+            "Completa uno scioglilingua senza sbagliare.",
+            "Descrivi il tuo cibo preferito in modo teatrale.",
+            "Crea una storia con tre parole suggerite dagli altri.",
+            "Parla con un accento diverso fino al prossimo turno.",
+            "Mima un’azione finché qualcuno non la indovina.",
+            "Ripeti una frase famosa a scelta in modo drammatico.",
+            "Danza sulle note di una canzone immaginaria.",
+            "Recita una scena famosa di un film.",
+            "Inventati un nuovo ballo e insegnalo agli altri.",
+            "Fai il tuo miglior ruggito di leone.",
+            "Parla al contrario per un minuto.",
+            "Recita una poesia improvvisata su qualcosa in vista.",
+            "Inventa un superpotere e mostrane l’uso.",
+            "Mima una scena di un film di supereroi.",
+            "Fai il verso di tre animali diversi.",
+            "Danza come se fossi in una festa degli anni '80.",
+            "Fai un’espressione triste finché qualcuno ti chiede cosa c’è.",
+            "Fai il tuo miglior verso di dinosauro.",
+            "Canta una canzone con la bocca chiusa.",
+            "Imita una celebrità che conosci tutti.",
+            "Recita una scena di un film d’amore.",
+            "Canta come se fossi in un musical.",
+            "Fai un monologo su una cosa a caso.",
+            "Imita un insegnante per 30 secondi.",
+            "Canta un jingle pubblicitario famoso.",
+            "Recita il testo di una canzone in modo teatrale.",
+            "Imita qualcuno del gruppo finché non viene indovinato.",
+            "Descrivi cosa hai mangiato oggi in modo appassionato.",
+            "Fai il verso di un animale che non conosci.",
+            "Fai una dichiarazione d'amore in una lingua inventata.",
+            "Parla solo in rima per 1 minuto.",
+            "Parla come un robot fino al prossimo turno.",
+            "Imita una persona arrabbiata.",
+            "Parla con una voce da cartone animato.",
+            "Canta una canzone famosa in modo triste.",
+            "Imita qualcuno che conosci bene.",
+            "Fai finta di avere un superpotere.",
+            "Fai una danza improvvisata per 30 secondi.",
+            "Fai una dichiarazione d'amore a un oggetto in vista.",
+            "Parla come se fossi un nobile dell'antichità.",
+            "Fai un monologo su un argomento assurdo.",
+            "Fai una mini sceneggiata napoletana.",
+            "Fai una breve imitazione di uno sportivo famoso.",
+            "Parla come se fossi un politico per 30 secondi.",
+            "Imita il tuo animale domestico (o un animale immaginario).",
+            "Parla con voce da presentatore TV per 1 minuto.",
+            "Canta una canzone popolare in un’altra lingua.",
+            "Imita una celebrità italiana.",
+            "Racconta una storia di fantasmi.",
+            "Fai il tuo miglior ruggito di leone.",
+            "Mima il tuo lavoro ideale.",
+            "Fai finta di essere su una passerella di moda.",
+            "Canta come se fossi una rockstar.",
+            "Danza come se fossi in una discoteca anni '70.",
+            "Crea una storia in 5 parole.",
+            "Parla come se fossi un robot.",
+            "Fai una parodia di una canzone famosa.",
+            "Descrivi una scena di film preferita.",
+            "Canta un jingle pubblicitario.",
+            "Crea una nuova parola e spiegala.",
+            "Imita un cantante famoso.",
+            "Parla con voce da cartone animato.",
+            "Canta come se fossi in un musical.",
+            "Fai finta di avere un superpotere.",
+            "Recita una poesia improvvisata.",
+            "Imita un robot.",
+            "Parla con accento francese.",
+            "Imita il tuo animale preferito.",
+            "Descrivi una scena di film.",
+            "Canta un jingle pubblicitario.",
+            "Fai una dichiarazione d’amore.",
+            "Racconta una barzelletta.",
+            "Mima un animale.",
+            "Recita una poesia.",
+            "Canta una canzone.",
+            "Danza come un ballerino.",
+            "Parla come un robot.",
+            "Fai un monologo.",
+            "Canta un jingle.",
+            "Recita un monologo.",
+            "Parla come un nobile.",
+            "Descrivi il tuo cibo preferito.",
+            "Danza come un robot.",
+            "Recita un film.",
+            "Parla in rima.",
+            "Imita una celebrità.",
+            "Fai una camminata da modella.",
+            "Parla con voce alta.",
+            "Parla con voce bassa.",
+            "Imita un cantante.",
+            "Imita una celebrità."
+        ];
+
+        const penalties = [
+            "Tieni la gamba alzata fino al prossimo turno.",
+            "Fai 15 flessioni.",
+            "Danza come un robot per 1 minuto.",
+            "Parla solo in rima fino al prossimo turno.",
+            "Racconta una storia imbarazzante su di te.",
+            "Canta una canzone inventata per 1 minuto.",
+            "Fai una dichiarazione d’amore a una sedia.",
+            "Fai 10 squat.",
+            "Stai in equilibrio su una gamba per 30 secondi.",
+            "Parla con voce da cartone animato.",
+            "Ripeti ogni cosa che dice la persona accanto a te fino al prossimo turno.",
+            "Danza come se fossi un robot.",
+            "Canta una canzone inventata.",
+            "Fai una dichiarazione d’amore.",
+            "Parla solo in rima.",
+            "Imita una celebrità.",
+            "Fai un esercizio.",
+            "Stai su una gamba.",
+            "Parla come un robot.",
+            "Ripeti come un eco.",
+            "Danza come un robot.",
+            "Fai flessioni.",
+            "Racconta una storia imbarazzante.",
+            "Parla in rima.",
+            "Stai in equilibrio.",
+            "Ripeti tutto.",
+            "Imita un cantante.",
+            "Racconta una barzelletta.",
+            "Parla come un robot.",
+            "Ripeti tutto.",
+            "Imita una celebrità."
+        ];
+
+        // Funzione per iniziare il gioco
+        function startGame() {
+            const name = document.getElementById("superhero-name").value;
+            if (name) {
+                document.getElementById("selected-name").innerText = `Ciao, ${name} il Supereroe!`;
+                document.getElementById("game-container").style.display = "block";
+            } else {
+                alert("Seleziona un nome da supereroe!");
+            }
+        }
+
+        // Funzione per accettare la sfida
+        function acceptChallenge() {
+            const randomIndex = Math.floor(Math.random() * challenges.length);
+            const challenge = challenges[randomIndex];
+            document.getElementById("challenge-result").innerText = `Sfida: ${challenge}`;
+        }
+
+        // Funzione per rifiutare la sfida
+        function declineChallenge() {
+            const randomIndex = Math.floor(Math.random() * penalties.length);
+            const penalty = penalties[randomIndex];
+            document.getElementById("challenge-result").innerText = `Penitenza: ${penalty}`;
+        }
+    </script>
+
+</body>
+</html>
