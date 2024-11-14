@@ -3,202 +3,646 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gioco di Capodanno</title>
+    <title>Gioco Sfida</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        #game-container { display: none; }
-        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        button, select {
+            font-size: 16px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #regolamento {
+            display: none;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+        #sfida, #punteggio {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Benvenuto nel Gioco di Capodanno!</h1>
-    <p>Inserisci il tuo nome da supereroe:</p>
-    <select id="superhero-name">
-        <option value="">Seleziona il nome</option>
-        <option value="Angelo">Angelo</option>
-        <option value="Matilde">Matilde</option>
-        <option value="Eleonora">Eleonora</option>
-        <option value="Rita">Rita</option>
-        <option value="Federico">Federico</option>
-        <option value="Rebecca">Rebecca</option>
-        <option value="Alessandro">Alessandro</option>
-        <option value="Francesco">Francesco</option>
-        <option value="Giulia">Giulia</option>
-    </select>
-    <button onclick="startGame()">Inizia</button>
+    <div class="container">
+        <h1>Benvenuto, è l'ora di entrare in scena!</h1>
+        <p>Scegli il tuo personaggio e inizia a giocare.</p>
 
-    <div id="game-container">
-        <h2 id="selected-name"></h2>
-        <p>Scegli una delle opzioni:</p>
-        <button onclick="acceptChallenge()">Accetta la Sfida</button>
-        <button onclick="declineChallenge()">Rifiuta la Sfida</button>
-        <p id="challenge-result"></p>
+        <select id="personaggio">
+            <option value="">-- Seleziona Personaggio --</option>
+            <option value="Francesco">Francesco</option>
+            <option value="Rita">Rita</option>
+            <option value="Giulia">Giulia</option>
+            <option value="Matilde">Matilde</option>
+            <option value="Angelo">Angelo</option>
+            <option value="Rebecca">Rebecca</option>
+            <option value="Eleonora">Eleonora</option>
+            <option value="Federico">Federico</option>
+            <option value="Alessandro">Alessandro</option>
+        </select>
+
+        <div>
+            <button onclick="mostraRegolamento()">Regolamento</button>
+            <button onclick="iniziaSfida()">Inizia la Sfida</button>
+        </div>
+
+        <div id="regolamento">
+            <h2>Regolamento del Gioco</h2>
+            <p>Ogni personaggio ha tre tipi di sfida: <b>Accetta la sfida</b>, <b>Rifiuta la sfida</b>, e <b>Dimostra chi sei</b>.
+            Se completi con successo le sfide, guadagni punti: <b>5 punti</b> per "Accetta la sfida", <b>2 punti</b> per "Rifiuta la sfida", e <b>10 punti</b> per "Dimostra chi sei".
+            Il primo a raggiungere 50 punti vince!</p>
+        </div>
+
+        <div id="sfida">
+            <h2 id="nomeSfida"></h2>
+            <p id="descrizioneSfida"></p>
+            <div>
+                <button onclick="accettaSfida()">Accetta la sfida</button>
+                <button onclick="rifiutaSfida()">Rifiuta la sfida</button>
+                <button onclick="dimostraSfida()">Dimostra chi sei</button>
+            </div>
+            <button onclick="raccogliPunti()">Raccogli i tuoi punti</button>
+        </div>
+
+        <div id="punteggio">
+            <h2>Punti Totali: <span id="puntiTotali">0</span></h2>
+            <p id="vittoria"></p>
+        </div>
     </div>
 
     <script>
-        // Liste delle sfide
-        const challenges = [
-            "Fai una camminata da modella intorno alla stanza.",
-            "Racconta una barzelletta e fai ridere almeno tre persone.",
-            "Fai finta di essere un cantante rock per 30 secondi.",
-            "Imita un animale a scelta per un minuto.",
-            "Canta la tua canzone preferita senza musica.",
-            "Parla in una lingua inventata per due minuti.",
-            "Racconta un aneddoto divertente che ti è capitato.",
-            "Fai un ballo come se fossi in discoteca.",
-            "Completa uno scioglilingua senza sbagliare.",
-            "Descrivi il tuo cibo preferito in modo teatrale.",
-            "Crea una storia con tre parole suggerite dagli altri.",
-            "Parla con un accento diverso fino al prossimo turno.",
-            "Mima un’azione finché qualcuno non la indovina.",
-            "Ripeti una frase famosa a scelta in modo drammatico.",
-            "Danza sulle note di una canzone immaginaria.",
-            "Recita una scena famosa di un film.",
-            "Inventati un nuovo ballo e insegnalo agli altri.",
-            "Fai il tuo miglior ruggito di leone.",
-            "Parla al contrario per un minuto.",
-            "Recita una poesia improvvisata su qualcosa in vista.",
-            "Inventa un superpotere e mostrane l’uso.",
-            "Mima una scena di un film di supereroi.",
-            "Fai il verso di tre animali diversi.",
-            "Danza come se fossi in una festa degli anni '80.",
-            "Fai un’espressione triste finché qualcuno ti chiede cosa c’è.",
-            "Fai il tuo miglior verso di dinosauro.",
-            "Canta una canzone con la bocca chiusa.",
-            "Imita una celebrità che conosci tutti.",
-            "Recita una scena di un film d’amore.",
-            "Canta come se fossi in un musical.",
-            "Fai un monologo su una cosa a caso.",
-            "Imita un insegnante per 30 secondi.",
-            "Canta un jingle pubblicitario famoso.",
-            "Recita il testo di una canzone in modo teatrale.",
-            "Imita qualcuno del gruppo finché non viene indovinato.",
-            "Descrivi cosa hai mangiato oggi in modo appassionato.",
-            "Fai il verso di un animale che non conosci.",
-            "Fai una dichiarazione d'amore in una lingua inventata.",
-            "Parla solo in rima per 1 minuto.",
-            "Parla come un robot fino al prossimo turno.",
-            "Imita una persona arrabbiata.",
-            "Parla con una voce da cartone animato.",
-            "Canta una canzone famosa in modo triste.",
-            "Imita qualcuno che conosci bene.",
-            "Fai finta di avere un superpotere.",
-            "Fai una danza improvvisata per 30 secondi.",
-            "Fai una dichiarazione d'amore a un oggetto in vista.",
-            "Parla come se fossi un nobile dell'antichità.",
-            "Fai un monologo su un argomento assurdo.",
-            "Fai una mini sceneggiata napoletana.",
-            "Fai una breve imitazione di uno sportivo famoso.",
-            "Parla come se fossi un politico per 30 secondi.",
-            "Imita il tuo animale domestico (o un animale immaginario).",
-            "Parla con voce da presentatore TV per 1 minuto.",
-            "Canta una canzone popolare in un’altra lingua.",
-            "Imita una celebrità italiana.",
-            "Racconta una storia di fantasmi.",
-            "Fai il tuo miglior ruggito di leone.",
-            "Mima il tuo lavoro ideale.",
-            "Fai finta di essere su una passerella di moda.",
-            "Canta come se fossi una rockstar.",
-            "Danza come se fossi in una discoteca anni '70.",
-            "Crea una storia in 5 parole.",
-            "Parla come se fossi un robot.",
-            "Fai una parodia di una canzone famosa.",
-            "Descrivi una scena di film preferita.",
-            "Canta un jingle pubblicitario.",
-            "Crea una nuova parola e spiegala.",
-            "Imita un cantante famoso.",
-            "Parla con voce da cartone animato.",
-            "Canta come se fossi in un musical.",
-            "Fai finta di avere un superpotere.",
-            "Recita una poesia improvvisata.",
-            "Imita un robot.",
-            "Parla con accento francese.",
-            "Imita il tuo animale preferito.",
-            "Descrivi una scena di film.",
-            "Canta un jingle pubblicitario.",
-            "Fai una dichiarazione d’amore.",
-            "Racconta una barzelletta.",
-            "Mima un animale.",
-            "Recita una poesia.",
-            "Canta una canzone.",
-            "Danza come un ballerino.",
-            "Parla come un robot.",
-            "Fai un monologo.",
-            "Canta un jingle.",
-            "Recita un monologo.",
-            "Parla come un nobile.",
-            "Descrivi il tuo cibo preferito.",
-            "Danza come un robot.",
-            "Recita un film.",
-            "Parla in rima.",
-            "Imita una celebrità.",
-            "Fai una camminata da modella.",
-            "Parla con voce alta.",
-            "Parla con voce bassa.",
-            "Imita un cantante.",
-            "Imita una celebrità."
-        ];
+        let puntiTotali = 0;
 
-        const penalties = [
-            "Tieni la gamba alzata fino al prossimo turno.",
-            "Fai 15 flessioni.",
-            "Danza come un robot per 1 minuto.",
-            "Parla solo in rima fino al prossimo turno.",
-            "Racconta una storia imbarazzante su di te.",
-            "Canta una canzone inventata per 1 minuto.",
-            "Fai una dichiarazione d’amore a una sedia.",
-            "Fai 10 squat.",
-            "Stai in equilibrio su una gamba per 30 secondi.",
-            "Parla con voce da cartone animato.",
-            "Ripeti ogni cosa che dice la persona accanto a te fino al prossimo turno.",
-            "Danza come se fossi un robot.",
-            "Canta una canzone inventata.",
-            "Fai una dichiarazione d’amore.",
-            "Parla solo in rima.",
-            "Imita una celebrità.",
-            "Fai un esercizio.",
-            "Stai su una gamba.",
-            "Parla come un robot.",
-            "Ripeti come un eco.",
-            "Danza come un robot.",
-            "Fai flessioni.",
-            "Racconta una storia imbarazzante.",
-            "Parla in rima.",
-            "Stai in equilibrio.",
-            "Ripeti tutto.",
-            "Imita un cantante.",
-            "Racconta una barzelletta.",
-            "Parla come un robot.",
-            "Ripeti tutto.",
-            "Imita una celebrità."
-        ];
+        const sfide = {
+                        Francesco: {
+               accetta: [
+    { descrizione: "Imita un personaggio famoso.", punti: 5 },
+    { descrizione: "Racconta una barzelletta in rima.", punti: 5 },
+    { descrizione: "Disegna qualcosa in 30 secondi senza guardare il foglio.", punti: 5 },
+    { descrizione: "Canta una canzone a caso.", punti: 5 },
+    { descrizione: "Siediti per 1 minuto senza parlare.", punti: 5 },
+    { descrizione: "Mima il tuo animale preferito.", punti: 5 },
+    { descrizione: "Parla velocemente per 30 secondi.", punti: 5 },
+    { descrizione: "Recita una poesia inventata.", punti: 5 },
+    { descrizione: "Crea una storia partendo da 3 parole casuali.", punti: 5 },
+    { descrizione: "Disegna una faccia sorridente in modo divertente.", punti: 5 },
+    { descrizione: "Trova 3 oggetti gialli nella stanza.", punti: 5 },
+    { descrizione: "Parla come un pirata per 30 secondi.", punti: 5 },
+    { descrizione: "Fai una smorfia esagerata.", punti: 5 },
+    { descrizione: "Inventa una parola e usala in una frase.", punti: 5 },
+    { descrizione: "Imita un'azione quotidiana.", punti: 5 }
+],
 
-        // Funzione per iniziare il gioco
-        function startGame() {
-            const name = document.getElementById("superhero-name").value;
-            if (name) {
-                document.getElementById("selected-name").innerText = `Ciao, ${name} il Supereroe!`;
-                document.getElementById("game-container").style.display = "block";
-            } else {
-                alert("Seleziona un nome da supereroe!");
+rifiuta: [
+    { descrizione: "Fai un sorriso senza mostrare i denti.", punti: 2 },
+    { descrizione: "Alza una mano e mantieni il sorriso.", punti: 2 },
+    { descrizione: "Controlla il tuo battito cardiaco per 10 secondi.", punti: 2 },
+    { descrizione: "Alza la mano destra e tocca il naso con l'altra.", punti: 2 },
+    { descrizione: "Dì 5 numeri in ordine crescente.", punti: 2 },
+    { descrizione: "Afferra un oggetto a caso nella stanza.", punti: 2 },
+    { descrizione: "Tocca i piedi senza piegare le ginocchia.", punti: 2 },
+    { descrizione: "Fai finta di dormire per 10 secondi.", punti: 2 },
+    { descrizione: "Guarda fisso un oggetto per 20 secondi.", punti: 2 },
+    { descrizione: "Gesticola per raccontare una storia.", punti: 2 },
+    { descrizione: "Batti le mani tre volte.", punti: 2 },
+    { descrizione: "Respira profondamente 3 volte.", punti: 2 },
+    { descrizione: "Fai finta di essere un supereroe.", punti: 2 },
+    { descrizione: "Prendi una posa divertente.", punti: 2 },
+    { descrizione: "Siediti e osserva in silenzio per 5 secondi.", punti: 2 }
+],
+
+dimostra: [
+    { descrizione: "Fai 10 squat in 1 minuto.", punti: 10 },
+    { descrizione: "Parla di un sogno ricorrente che hai.", punti: 10 },
+    { descrizione: "Racconta un episodio divertente della tua infanzia.", punti: 10 },
+    { descrizione: "Esegui una capriola.", punti: 10 },
+    { descrizione: "Fai un salto mortale immaginario.", punti: 10 },
+    { descrizione: "Imita il movimento di un animale in 30 secondi.", punti: 10 },
+    { descrizione: "Fai una dichiarazione di 30 secondi su chi sei.", punti: 10 },
+    { descrizione: "Completa un indovinello difficile.", punti: 10 },
+    { descrizione: "Descrivi un'avventura che sogni di vivere.", punti: 10 },
+    { descrizione: "Racconta il tuo film preferito e perché.", punti: 10 },
+    { descrizione: "Descrivi un viaggio che vuoi fare.", punti: 10 },
+    { descrizione: "Ripeti una frase difficile per 10 secondi.", punti: 10 },
+    { descrizione: "Completa una lista di 10 cose che ti piacciono.", punti: 10 },
+    { descrizione: "Fai una corsa sul posto per 1 minuto.", punti: 10 },
+    { descrizione: "Spiega una tua passione in 30 secondi.", punti: 10 }
+]
+            },
+            Rita: {
+                accetta: [
+    { descrizione: "Fingi di essere un personaggio famoso.", punti: 5 },
+    { descrizione: "Recita una parte di un film.", punti: 5 },
+    { descrizione: "Crea una storia immaginaria.", punti: 5 },
+    { descrizione: "Mima una scena di film famosa.", punti: 5 },
+    { descrizione: "Descrivi la tua giornata ideale.", punti: 5 },
+    { descrizione: "Fai 5 squat in 10 secondi.", punti: 5 },
+    { descrizione: "Fai una smorfia.", punti: 5 },
+    { descrizione: "Racconta un’avventura di fantasia.", punti: 5 },
+    { descrizione: "Disegna una figura astratta.", punti: 5 },
+    { descrizione: "Imita un animale esotico.", punti: 5 },
+    { descrizione: "Canta una canzone divertente.", punti: 5 },
+    { descrizione: "Fai una danza divertente.", punti: 5 },
+    { descrizione: "Parla con un accento straniero.", punti: 5 },
+    { descrizione: "Fingi di essere un robot.", punti: 5 },
+    { descrizione: "Fai 5 flessioni in 1 minuto.", punti: 5 }
+],
+
+rifiuta: [
+    { descrizione: "Sorridi senza mostrare i denti.", punti: 2 },
+    { descrizione: "Toccati la testa e i piedi.", punti: 2 },
+    { descrizione: "Salta una volta.", punti: 2 },
+    { descrizione: "Conta fino a 10 velocemente.", punti: 2 },
+    { descrizione: "Mimica un oggetto immaginario.", punti: 2 },
+    { descrizione: "Alza entrambe le braccia.", punti: 2 },
+    { descrizione: "Stira i piedi.", punti: 2 },
+    { descrizione: "Siediti velocemente.", punti: 2 },
+    { descrizione: "Fai una posizione yoga.", punti: 2 },
+    { descrizione: "Dì una parola al contrario.", punti: 2 },
+    { descrizione: "Gesticola senza parlare.", punti: 2 },
+    { descrizione: "Mima di scrivere.", punti: 2 },
+    { descrizione: "Alza una mano e sorridi.", punti: 2 },
+    { descrizione: "Fai una piroetta.", punti: 2 },
+    { descrizione: "Salta con un piede solo.", punti: 2 }
+],
+
+dimostra: [
+    { descrizione: "Fai 20 flessioni in 1 minuto.", punti: 10 },
+    { descrizione: "Racconta una volta in cui hai imparato una lezione importante.", punti: 10 },
+    { descrizione: "Parla per 30 secondi senza interruzione.", punti: 10 },
+    { descrizione: "Fai 10 addominali.", punti: 10 },
+    { descrizione: "Racconta il tuo più grande sogno.", punti: 10 },
+    { descrizione: "Parla del tuo più grande rimpianto.", punti: 10 },
+    { descrizione: "Fai una corsa sul posto.", punti: 10 },
+    { descrizione: "Esegui un esercizio fisico difficile.", punti: 10 },
+    { descrizione: "Racconta una volta in cui ti sei sentito veramente forte.", punti: 10 },
+    { descrizione: "Fai un salto lungo.", punti: 10 },
+    { descrizione: "Racconta un momento che ti ha cambiato.", punti: 10 },
+    { descrizione: "Descrivi cosa ti fa davvero felice.", punti: 10 },
+    { descrizione: "Fai una dichiarazione pubblica sulla tua passione.", punti: 10 },
+    { descrizione: "Completa una sfida difficile.", punti: 10 },
+    { descrizione: "Fai 15 addominali.", punti: 10 }
+]
+            },
+             Giulia: {
+                accetta: [
+    { descrizione: "Canta una canzone con la voce più alta che puoi.", punti: 5 },
+    { descrizione: "Imita un supereroe per 30 secondi.", punti: 5 },
+    { descrizione: "Fingi di essere una statua immobile per 1 minuto.", punti: 5 },
+    { descrizione: "Fai una scenetta come un attore di teatro.", punti: 5 },
+    { descrizione: "Crea una storia inventata usando 3 parole casuali.", punti: 5 },
+    { descrizione: "Canta la tua canzone preferita senza parole, solo suoni.", punti: 5 },
+    { descrizione: "Fai 10 salti sul posto.", punti: 5 },
+    { descrizione: "Fai una danza improvvisata.", punti: 5 },
+    { descrizione: "Parla per 30 secondi come un personaggio famoso.", punti: 5 },
+    { descrizione: "Recita una poesia inventata.", punti: 5 },
+    { descrizione: "Fai una faccia da pesce per 30 secondi.", punti: 5 },
+    { descrizione: "Inventa un personaggio e recita una scena con lui.", punti: 5 },
+    { descrizione: "Gira su te stessa per 10 secondi.", punti: 5 },
+    { descrizione: "Fai 5 piroette.", punti: 5 },
+    { descrizione: "Mima una scena di un film famoso.", punti: 5 }
+],
+
+rifiuta: [
+    { descrizione: "Stai fermo e fissa un oggetto per 30 secondi.", punti: 2 },
+    { descrizione: "Fai un respiro profondo e sorridi.", punti: 2 },
+    { descrizione: "Strofina le mani per 10 secondi.", punti: 2 },
+    { descrizione: "Dì una parola al contrario.", punti: 2 },
+    { descrizione: "Alza una mano e mantienila su per 10 secondi.", punti: 2 },
+    { descrizione: "Salta 3 volte in avanti.", punti: 2 },
+    { descrizione: "Fai 5 flessioni in modo lento.", punti: 2 },
+    { descrizione: "Alza le gambe e tocca le punte dei piedi.", punti: 2 },
+    { descrizione: "Dì una parola difficile senza sbagliarla.", punti: 2 },
+    { descrizione: "Fai un sorriso e mantienilo per 20 secondi.", punti: 2 },
+    { descrizione: "Tocca il naso con il dito indice.", punti: 2 },
+    { descrizione: "Cerca di rimanere in equilibrio su un piede per 30 secondi.", punti: 2 },
+    { descrizione: "Fai un applauso e fermati subito.", punti: 2 },
+    { descrizione: "Alza le braccia e tocca le orecchie.", punti: 2 },
+    { descrizione: "Imita il rumore di un animale.", punti: 2 }
+],
+
+dimostra: [
+    { descrizione: "Fai 20 flessioni in 1 minuto.", punti: 10 },
+    { descrizione: "Fai una dichiarazione che rappresenta chi sei.", punti: 10 },
+    { descrizione: "Fai una corsa sul posto per 1 minuto.", punti: 10 },
+    { descrizione: "Fai 30 secondi di ballo improvvisato.", punti: 10 },
+    { descrizione: "Racconta un'avventura incredibile che vorresti vivere.", punti: 10 },
+    { descrizione: "Crea una coreografia e insegnala a tutti.", punti: 10 },
+    { descrizione: "Racconta un aneddoto divertente da bambina.", punti: 10 },
+    { descrizione: "Imita un animale selvatico.", punti: 10 },
+    { descrizione: "Fai una sfida di velocità con le flessioni.", punti: 10 },
+    { descrizione: "Descrivi il tuo sogno più grande.", punti: 10 },
+    { descrizione: "Fai 15 salti in alto consecutivi.", punti: 10 },
+    { descrizione: "Parla in rima per 30 secondi.", punti: 10 },
+    { descrizione: "Fai una corsa sul posto con le ginocchia alte.", punti: 10 },
+    { descrizione: "Fai 20 addominali.", punti: 10 },
+    { descrizione: "Dì il tuo nome in modo divertente.", punti: 10 }
+]
+            },
+			Matilde: { 
+			 accetta: [
+    { descrizione: "Imita una scena di una commedia.", punti: 5 },
+    { descrizione: "Fingi di essere un personaggio dei cartoni animati.", punti: 5 },
+    { descrizione: "Disegna il ritratto di una persona senza guardare il foglio.", punti: 5 },
+    { descrizione: "Mima un lavoro che ti piacerebbe fare.", punti: 5 },
+    { descrizione: "Racconta una storia di paura inventata.", punti: 5 },
+    { descrizione: "Dì qualcosa in una lingua che non conosci.", punti: 5 },
+    { descrizione: "Fai 10 salti sul posto.", punti: 5 },
+    { descrizione: "Parla di te come se fossi un'altra persona.", punti: 5 },
+    { descrizione: "Fai 10 push-up.", punti: 5 },
+    { descrizione: "Imita il tuo animale preferito.", punti: 5 },
+    { descrizione: "Fai una smorfia esagerata.", punti: 5 },
+    { descrizione: "Danza per 30 secondi come se fossi in un concerto.", punti: 5 },
+    { descrizione: "Parla velocemente per 1 minuto.", punti: 5 },
+    { descrizione: "Fingi di essere un robot.", punti: 5 },
+    { descrizione: "Recita una battuta famosa da film.", punti: 5 }
+],
+
+rifiuta: [
+    { descrizione: "Canta una nota alta e lunga.", punti: 2 },
+    { descrizione: "Fai 5 salti consecutivi.", punti: 2 },
+    { descrizione: "Imita un oggetto domestico.", punti: 2 },
+    { descrizione: "Tocca il pavimento con le mani.", punti: 2 },
+    { descrizione: "Salta sul posto per 20 secondi.", punti: 2 },
+    { descrizione: "Dì qualcosa in un accento strano.", punti: 2 },
+    { descrizione: "Sorridi e mantieni il sorriso per 20 secondi.", punti: 2 },
+    { descrizione: "Fai una piroetta.", punti: 2 },
+    { descrizione: "Imita una figura pubblica.", punti: 2 },
+    { descrizione: "Fai una posa da fotografo.", punti: 2 },
+    { descrizione: "Batti le mani tre volte velocemente.", punti: 2 },
+    { descrizione: "Tocca il naso con il dito indice.", punti: 2 },
+    { descrizione: "Rimani in equilibrio su un piede per 15 secondi.", punti: 2 },
+    { descrizione: "Fai finta di fare un discorso pubblico.", punti: 2 },
+    { descrizione: "Fai 5 gesti senza parlare.", punti: 2 }
+],
+
+dimostra: [
+    { descrizione: "Fai una sfida di resistenza con le flessioni.", punti: 10 },
+    { descrizione: "Imita una scena epica da film.", punti: 10 },
+    { descrizione: "Fai 30 secondi di ballo improvvisato.", punti: 10 },
+    { descrizione: "Racconta una storia di coraggio.", punti: 10 },
+    { descrizione: "Fai una marcia sul posto.", punti: 10 },
+    { descrizione: "Racconta un'avventura che ti ha cambiato.", punti: 10 },
+    { descrizione: "Fai 10 piegamenti.", punti: 10 },
+    { descrizione: "Parla di un argomento che ti appassiona per 30 secondi.", punti: 10 },
+    { descrizione: "Imita un animale selvaggio.", punti: 10 },
+    { descrizione: "Descrivi la tua giornata ideale.", punti: 10 },
+    { descrizione: "Canta una canzone per 30 secondi.", punti: 10 },
+    { descrizione: "Fai 15 salti sul posto.", punti: 10 },
+    { descrizione: "Fai 30 secondi di yoga.", punti: 10 },
+    { descrizione: "Parla di un sogno che vuoi realizzare.", punti: 10 },
+    { descrizione: "Fai 10 addominali.", punti: 10 }
+]
+            },
+			Angelo: { 
+			 accetta: [
+    { descrizione: "Fingi di essere un cantante famoso.", punti: 5 },
+    { descrizione: "Fai una coreografia di danza.", punti: 5 },
+    { descrizione: "Recita una scena d'azione da film.", punti: 5 },
+    { descrizione: "Fai 10 salti e fermati immediatamente.", punti: 5 },
+    { descrizione: "Fai 15 piroette senza fermarti.", punti: 5 },
+    { descrizione: "Imita un personaggio di fantasia.", punti: 5 },
+    { descrizione: "Improvvisa una battuta divertente.", punti: 5 },
+    { descrizione: "Fingi di essere un attore in un film drammatico.", punti: 5 },
+    { descrizione: "Fai un gesto che rappresenta una passione.", punti: 5 },
+    { descrizione: "Fai una smorfia esagerata per 30 secondi.", punti: 5 },
+    { descrizione: "Fai un saluto con un gesto strano.", punti: 5 },
+    { descrizione: "Fingi di essere una persona molto importante.", punti: 5 },
+    { descrizione: "Fai un'esibizione di imitazione.", punti: 5 },
+    { descrizione: "Fai un'imitazione di un animale esotico.", punti: 5 },
+    { descrizione: "Recita una battuta di un film in modo drammatico.", punti: 5 }
+],
+
+rifiuta: [
+    { descrizione: "Alza una mano e mantieni il sorriso.", punti: 2 },
+    { descrizione: "Siediti e fai finta di dormire.", punti: 2 },
+    { descrizione: "Fai una posizione yoga.", punti: 2 },
+    { descrizione: "Dì 5 numeri in ordine crescente.", punti: 2 },
+    { descrizione: "Fai una piccola corsa in giro.", punti: 2 },
+    { descrizione: "Tocca il naso e sorridi.", punti: 2 },
+    { descrizione: "Fai un piccolo salto in avanti.", punti: 2 },
+    { descrizione: "Guarda fisso un oggetto per 20 secondi.", punti: 2 },
+    { descrizione: "Controlla il tuo battito cardiaco per 10 secondi.", punti: 2 },
+    { descrizione: "Alza la mano e tocca il naso con l'altra.", punti: 2 },
+    { descrizione: "Prendi una posa divertente.", punti: 2 },
+    { descrizione: "Gesticola per raccontare una storia.", punti: 2 },
+    { descrizione: "Dì 3 parole di un colore diverso.", punti: 2 },
+    { descrizione: "Salta con un piede solo.", punti: 2 },
+    { descrizione: "Fai un sorriso esagerato.", punti: 2 }
+],
+
+dimostra: [
+    { descrizione: "Fai 20 addominali in 1 minuto.", punti: 10 },
+    { descrizione: "Fai una corsa sul posto per 1 minuto.", punti: 10 },
+    { descrizione: "Racconta un'avventura coraggiosa.", punti: 10 },
+    { descrizione: "Completa una serie di flessioni.", punti: 10 },
+    { descrizione: "Imita il movimento di un animale.", punti: 10 },
+    { descrizione: "Fai un salto mortale immaginario.", punti: 10 },
+    { descrizione: "Spiega il tuo sogno più grande in 30 secondi.", punti: 10 },
+    { descrizione: "Fai una dichiarazione sul tuo futuro.", punti: 10 },
+    { descrizione: "Descrivi come ti senti quando vinci.", punti: 10 },
+    { descrizione: "Parla per 30 secondi senza fermarti.", punti: 10 },
+    { descrizione: "Fai 10 flessioni.", punti: 10 },
+    { descrizione: "Fai una corsa intorno alla stanza.", punti: 10 },
+    { descrizione: "Descrivi il tuo obiettivo di vita.", punti: 10 },
+    { descrizione: "Fai una coreografia di danza per 1 minuto.", punti: 10 },
+    { descrizione: "Parla del tuo sogno più ambizioso.", punti: 10 }
+]
+            },
+			Rebecca: {  
+		accetta: [
+    { descrizione: "Fai una mimica di una scena da film d'azione.", punti: 5 },
+    { descrizione: "Imita un cantante famoso per 30 secondi.", punti: 5 },
+    { descrizione: "Fai 10 piegamenti sulle braccia.", punti: 5 },
+    { descrizione: "Imita un personaggio della tua infanzia.", punti: 5 },
+    { descrizione: "Canta una canzone di un musical.", punti: 5 },
+    { descrizione: "Fingi di essere un astronauta e descrivi il tuo viaggio.", punti: 5 },
+    { descrizione: "Fai 10 salti in un minuto.", punti: 5 },
+    { descrizione: "Recita una battuta di un film famoso.", punti: 5 },
+    { descrizione: "Fingi di essere un personaggio storico.", punti: 5 },
+    { descrizione: "Canta una canzone a squarciagola.", punti: 5 },
+    { descrizione: "Imita un animale marino.", punti: 5 },
+    { descrizione: "Fai 10 salti mortali in un minuto.", punti: 5 },
+    { descrizione: "Recita una poesia inventata.", punti: 5 },
+    { descrizione: "Fai un gesto come un supereroe.", punti: 5 },
+    { descrizione: "Fai finta di parlare una lingua aliena.", punti: 5 }
+],
+
+rifiuta: [
+    { descrizione: "Siediti e mantieni una posizione da yoga per 30 secondi.", punti: 2 },
+    { descrizione: "Fai 5 respiri profondi.", punti: 2 },
+    { descrizione: "Fai 3 salti in avanti.", punti: 2 },
+    { descrizione: "Strofina le mani velocemente.", punti: 2 },
+    { descrizione: "Dì 3 parole al contrario.", punti: 2 },
+    { descrizione: "Alza una mano e tocchi il piede opposto.", punti: 2 },
+    { descrizione: "Fai un applauso con le mani davanti.", punti: 2 },
+    { descrizione: "Fai 5 passi indietro.", punti: 2 },
+    { descrizione: "Cerca di rimanere in equilibrio su una gamba per 15 secondi.", punti: 2 },
+    { descrizione: "Tocca le orecchie con le mani.", punti: 2 },
+    { descrizione: "Fai un salto sul posto.", punti: 2 },
+    { descrizione: "Inclinati in avanti e cerca di toccare il pavimento.", punti: 2 },
+    { descrizione: "Fai un sorriso e mantienilo.", punti: 2 },
+    { descrizione: "Fai un piccolo salto di lato.", punti: 2 },
+    { descrizione: "Imita una persona che conosci.", punti: 2 }
+],
+
+dimostra: [
+    { descrizione: "Canta una canzone di un musical senza fermarti.", punti: 10 },
+    { descrizione: "Fai 10 piegamenti sulle braccia in 30 secondi.", punti: 10 },
+    { descrizione: "Racconta una storia di una tua avventura.", punti: 10 },
+    { descrizione: "Fai 20 salti in un minuto.", punti: 10 },
+    { descrizione: "Imita un personaggio famoso per 30 secondi.", punti: 10 },
+    { descrizione: "Fai una coreografia di danza per 1 minuto.", punti: 10 },
+    { descrizione: "Fai una dichiarazione epica come un eroe.", punti: 10 },
+    { descrizione: "Fai 10 flessioni senza fermarti.", punti: 10 },
+    { descrizione: "Racconta una storia che ti rappresenta.", punti: 10 },
+    { descrizione: "Fai una corsa sul posto per 1 minuto.", punti: 10 },
+    { descrizione: "Fai 15 addominali.", punti: 10 },
+    { descrizione: "Recita una scena da un film drammatico.", punti: 10 },
+    { descrizione: "Imita un animale feroce per 30 secondi.", punti: 10 },
+    { descrizione: "Fai 20 flessioni.", punti: 10 },
+    { descrizione: "Dì qualcosa che non hai mai detto prima.", punti: 10 }
+]
+            },
+			Eleonora: {
+                accetta: [
+    { descrizione: "Imita il tuo cantante preferito.", punti: 5 },
+    { descrizione: "Fai una coreografia di danza per 30 secondi.", punti: 5 },
+    { descrizione: "Imita una scena da un film di avventura.", punti: 5 },
+    { descrizione: "Fai 20 salti sul posto.", punti: 5 },
+    { descrizione: "Recita una battuta famosa in modo drammatico.", punti: 5 },
+    { descrizione: "Canta una canzone a squarciagola.", punti: 5 },
+    { descrizione: "Fai una smorfia e mantienila per 30 secondi.", punti: 5 },
+    { descrizione: "Parla come un personaggio dei cartoni animati.", punti: 5 },
+    { descrizione: "Fingi di essere un detective e risolvi un mistero.", punti: 5 },
+    { descrizione: "Fai un salto mortale immaginario.", punti: 5 },
+    { descrizione: "Imita il tuo animale preferito.", punti: 5 },
+    { descrizione: "Recita una poesia in modo drammatico.", punti: 5 },
+    { descrizione: "Fai una dichiarazione come un supereroe.", punti: 5 },
+    { descrizione: "Fingi di essere un astronauta.", punti: 5 },
+    { descrizione: "Fai un passo di danza improvvisato.", punti: 5 }
+],
+
+rifiuta: [
+    { descrizione: "Fai 5 respiri profondi.", punti: 2 },
+    { descrizione: "Fai 3 salti sul posto.", punti: 2 },
+    { descrizione: "Sorridi e mantieni il sorriso.", punti: 2 },
+    { descrizione: "Fai una piccola corsa in cerchio.", punti: 2 },
+    { descrizione: "Fai 5 passi indietro.", punti: 2 },
+    { descrizione: "Dì una frase al contrario.", punti: 2 },
+    { descrizione: "Fai un gesto con una mano e mantienilo.", punti: 2 },
+    { descrizione: "Siediti per 10 secondi e respira profondamente.", punti: 2 },
+    { descrizione: "Strofina le mani velocemente.", punti: 2 },
+    { descrizione: "Fai una faccia strana per 10 secondi.", punti: 2 },
+    { descrizione: "Fai 3 passi avanti.", punti: 2 },
+    { descrizione: "Gesticola senza parlare.", punti: 2 },
+    { descrizione: "Fai una smorfia esagerata.", punti: 2 },
+    { descrizione: "Fai un piccolo salto di lato.", punti: 2 },
+    { descrizione: "Tocca il pavimento con le mani.", punti: 2 }
+],
+
+dimostra: [
+    { descrizione: "Fai 15 flessioni senza fermarti.", punti: 10 },
+    { descrizione: "Racconta una storia che ti ispira.", punti: 10 },
+    { descrizione: "Imita un supereroe per 1 minuto.", punti: 10 },
+    { descrizione: "Fai 30 salti sul posto.", punti: 10 },
+    { descrizione: "Parla come se fossi un personaggio dei cartoni animati.", punti: 10 },
+    { descrizione: "Fai una corsa sul posto per 1 minuto.", punti: 10 },
+    { descrizione: "Descrivi il tuo sogno in 30 secondi.", punti: 10 },
+    { descrizione: "Imita un animale selvaggio.", punti: 10 },
+    { descrizione: "Canta una canzone che ti fa sentire bene.", punti: 10 },
+    { descrizione: "Fai 20 flessioni in 1 minuto.", punti: 10 },
+    { descrizione: "Improvvisa un monologo di 30 secondi.", punti: 10 },
+    { descrizione: "Descrivi un'avventura che ti piacerebbe vivere.", punti: 10 },
+    { descrizione: "Fai 10 piroette.", punti: 10 },
+    { descrizione: "Fai una dichiarazione epica.", punti: 10 },
+    { descrizione: "Fai 30 secondi di yoga.", punti: 10 }
+]
+            },
+			Federico: {
+                accetta: [
+    { descrizione: "Fingi di essere un astronauta.", punti: 5 },
+    { descrizione: "Imita un famoso cantante.", punti: 5 },
+    { descrizione: "Fai una danza improvvisata.", punti: 5 },
+    { descrizione: "Fai 10 flessioni.", punti: 5 },
+    { descrizione: "Fai una scena comica improvvisata.", punti: 5 },
+    { descrizione: "Imita un supereroe.", punti: 5 },
+    { descrizione: "Canta una canzone a cappella.", punti: 5 },
+    { descrizione: "Imita un personaggio famoso.", punti: 5 },
+    { descrizione: "Fai una dichiarazione coraggiosa.", punti: 5 },
+    { descrizione: "Fai una battuta divertente.", punti: 5 },
+    { descrizione: "Fingi di essere un investigatore.", punti: 5 },
+    { descrizione: "Fai 10 salti sul posto.", punti: 5 },
+    { descrizione: "Imita un personaggio dei cartoni animati.", punti: 5 },
+    { descrizione: "Fai una smorfia per 20 secondi.", punti: 5 },
+    { descrizione: "Recita una scena drammatica.", punti: 5 }
+],
+
+rifiuta: [
+    { descrizione: "Fai 5 passi in avanti.", punti: 2 },
+    { descrizione: "Strofina le mani per 10 secondi.", punti: 2 },
+    { descrizione: "Fai un piccolo salto sul posto.", punti: 2 },
+    { descrizione: "Tocca il pavimento e ritorna su.", punti: 2 },
+    { descrizione: "Fai 5 respiri profondi.", punti: 2 },
+    { descrizione: "Imita una persona che conosci.", punti: 2 },
+    { descrizione: "Dì una parola al contrario.", punti: 2 },
+    { descrizione: "Fai una posizione yoga per 15 secondi.", punti: 2 },
+    { descrizione: "Sorridi per 30 secondi.", punti: 2 },
+    { descrizione: "Fai un piccolo salto laterale.", punti: 2 },
+    { descrizione: "Fai 3 passi indietro.", punti: 2 },
+    { descrizione: "Fai 3 flessioni lente.", punti: 2 },
+    { descrizione: "Dì 5 numeri in ordine crescente.", punti: 2 },
+    { descrizione: "Tocca il naso con la mano opposta.", punti: 2 },
+    { descrizione: "Fai una posizione yoga semplice.", punti: 2 }
+],
+
+dimostra: [
+    { descrizione: "Fai 30 secondi di yoga.", punti: 10 },
+    { descrizione: "Fai 20 flessioni senza fermarti.", punti: 10 },
+    { descrizione: "Fai 10 addominali.", punti: 10 },
+    { descrizione: "Imita un supereroe in modo epico.", punti: 10 },
+    { descrizione: "Fai una dichiarazione di vita.", punti: 10 },
+    { descrizione: "Fai una scena di film drammatico.", punti: 10 },
+    { descrizione: "Fai 20 salti sul posto.", punti: 10 },
+    { descrizione: "Parla di un sogno che vuoi realizzare.", punti: 10 },
+    { descrizione: "Fai una corsa sul posto.", punti: 10 },
+    { descrizione: "Fai 30 secondi di danza.", punti: 10 },
+    { descrizione: "Recita una poesia per 1 minuto.", punti: 10 },
+    { descrizione: "Fai un salto mortale immaginario.", punti: 10 },
+    { descrizione: "Fai 10 flessioni in 30 secondi.", punti: 10 },
+    { descrizione: "Imita un animale da film.", punti: 10 },
+    { descrizione: "Parla per 30 secondi senza fermarti.", punti: 10 }
+]
+            },
+			Alessandro: {
+                accetta: [
+    { descrizione: "Imita un personaggio storico.", punti: 5 },
+    { descrizione: "Fai una performance teatrale.", punti: 5 },
+    { descrizione: "Canta una canzone popolare.", punti: 5 },
+    { descrizione: "Recita una battuta di un film.", punti: 5 },
+    { descrizione: "Fingi di essere un eroe.", punti: 5 },
+    { descrizione: "Fai 10 salti.", punti: 5 },
+    { descrizione: "Fingi di essere un robot.", punti: 5 },
+    { descrizione: "Imita un cartone animato.", punti: 5 },
+    { descrizione: "Fai un duetto con un altro partecipante.", punti: 5 },
+    { descrizione: "Recita una scena d'amore.", punti: 5 },
+    { descrizione: "Fai una scenetta comica.", punti: 5 },
+    { descrizione: "Fai 10 piegamenti.", punti: 5 },
+    { descrizione: "Canta una canzone d'amore.", punti: 5 },
+    { descrizione: "Imita un personaggio di fantasia.", punti: 5 },
+    { descrizione: "Fai una dichiarazione coraggiosa.", punti: 5 }
+],
+
+rifiuta: [
+    { descrizione: "Fai 5 respiri profondi.", punti: 2 },
+    { descrizione: "Fai un piccolo salto.", punti: 2 },
+    { descrizione: "Dì una parola al contrario.", punti: 2 },
+    { descrizione: "Fai 3 passi in avanti.", punti: 2 },
+    { descrizione: "Tocca il pavimento con le mani.", punti: 2 },
+    { descrizione: "Fai 5 flessioni lente.", punti: 2 },
+    { descrizione: "Fai una smorfia esagerata.", punti: 2 },
+    { descrizione: "Fai 3 salti laterali.", punti: 2 },
+    { descrizione: "Sorridi per 15 secondi.", punti: 2 },
+    { descrizione: "Imita una persona che conosci.", punti: 2 },
+    { descrizione: "Fai 5 passi indietro.", punti: 2 },
+    { descrizione: "Fai un passo in avanti con un piede solo.", punti: 2 },
+    { descrizione: "Dì una frase senza vocali.", punti: 2 },
+    { descrizione: "Fai una posizione yoga semplice.", punti: 2 },
+    { descrizione: "Fai una faccia strana.", punti: 2 }
+],
+
+dimostra: [
+    { descrizione: "Fai 30 flessioni in 1 minuto.", punti: 10 },
+    { descrizione: "Fai 20 salti sul posto.", punti: 10 },
+    { descrizione: "Imita un supereroe.", punti: 10 },
+    { descrizione: "Parla senza fermarti per 30 secondi.", punti: 10 },
+    { descrizione: "Fai 15 addominali.", punti: 10 },
+    { descrizione: "Recita una poesia per 1 minuto.", punti: 10 },
+    { descrizione: "Fai un gesto eroico.", punti: 10 },
+    { descrizione: "Fai 10 flessioni in 1 minuto.", punti: 10 },
+    { descrizione: "Fai una scena comica.", punti: 10 },
+    { descrizione: "Fai una dichiarazione epica.", punti: 10 },
+    { descrizione: "Fai una corsa sul posto.", punti: 10 },
+    { descrizione: "Fai 15 salti.", punti: 10 },
+    { descrizione: "Fai una corsa intorno alla stanza.", punti: 10 },
+    { descrizione: "Imita un animale da film.", punti: 10 },
+    { descrizione: "Imita un personaggio storico.", punti: 10 }
+]
+            },
+ 
+        function mostraRegolamento() {
+            const regolamento = document.getElementById('regolamento');
+            regolamento.style.display = regolamento.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function iniziaSfida() {
+            const personaggio = document.getElementById('personaggio').value;
+            if (!personaggio) {
+                alert("Per favore seleziona un personaggio!");
+                return;
+            }
+            document.getElementById('sfida').style.display = 'block';
+            mostraSfida(personaggio);
+        }
+
+        function mostraSfida(personaggio) {
+            const sfida = sfide[personaggio][Math.floor(Math.random() * 3)];
+            document.getElementById('nomeSfida').innerText = sfida.tipo;
+            document.getElementById('descrizioneSfida').innerText = sfida.descrizione;
+            document.getElementById('sfida').setAttribute("data-punti", sfida.punti);
+        }
+
+        function raccogliPunti() {
+            const punti = parseInt(document.getElementById('sfida').getAttribute("data-punti"));
+            puntiTotali += punti;
+            document.getElementById('puntiTotali').innerText = puntiTotali;
+            checkVittoria();
+            mostraSfida(document.getElementById('personaggio').value);
+        }
+
+        function accettaSfida() {
+            aggiornaPunti(5);
+        }
+
+        function rifiutaSfida() {
+            aggiornaPunti(2);
+        }
+
+        function dimostraSfida() {
+            aggiornaPunti(10);
+        }
+
+        function aggiornaPunti(punti) {
+            puntiTotali += punti;
+            document.getElementById('puntiTotali').innerText = puntiTotali;
+            checkVittoria();
+        }
+
+        function checkVittoria() {
+            if (puntiTotali >= 50) {
+                document.getElementById('vittoria').innerText = "Complimenti! Hai vinto il gioco!";
+                document.getElementById('sfida').style.display = 'none';
             }
         }
-
-        // Funzione per accettare la sfida
-        function acceptChallenge() {
-            const randomIndex = Math.floor(Math.random() * challenges.length);
-            const challenge = challenges[randomIndex];
-            document.getElementById("challenge-result").innerText = `Sfida: ${challenge}`;
-        }
-
-        // Funzione per rifiutare la sfida
-        function declineChallenge() {
-            const randomIndex = Math.floor(Math.random() * penalties.length);
-            const penalty = penalties[randomIndex];
-            document.getElementById("challenge-result").innerText = `Penitenza: ${penalty}`;
-        }
     </script>
-
 </body>
 </html>
